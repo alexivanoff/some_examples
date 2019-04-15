@@ -1,0 +1,12 @@
+ # {{ ansible_managed }}
+
+server {
+    listen 80 default_server;
+
+    include /etc/nginx/snippets/letsencrypt.conf;
+
+    location / {
+        return  403;
+    }
+}
+

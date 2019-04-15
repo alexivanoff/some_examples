@@ -1,0 +1,9 @@
+---
+- name: Add error.log to logcheck
+  lineinfile:
+    dest: /etc/logcheck/logcheck.logfiles
+    line: /var/log/nginx/error.log
+    state: present
+
+- name: Ignore non-critical errors
+  copy: src=logcheck-ignores dest=/etc/logcheck/ignore.d.server/nginx group=logcheck

@@ -1,0 +1,16 @@
+---
+- name: Disable {{ conf_dest|default(host) }} vhost
+  become: yes
+  file:
+    dest=/etc/nginx/sites-enabled/{{ conf_dest|default(host) }}
+    state=absent
+  notify: reload nginx
+  tags: ['nginx']
+
+- name: "Remove {{ conf_dest|default(host) }}"
+  become: yes
+  file:
+    dest="/etc/nginx/sites-available/{{ conf_dest|default(host) }}"
+    state=absent
+  notify: reload nginx
+  tags: ['nginx']

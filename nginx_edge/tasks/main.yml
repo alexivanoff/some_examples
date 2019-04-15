@@ -1,0 +1,46 @@
+---
+- name: Install Nginx
+  apt: pkg=nginx state=latest
+
+- name: Copy nginx.conf
+  template: src=nginx.conf dest=/etc/nginx/nginx.conf
+  register: nginx_conf
+
+# nginx.conf may change pid file path which requires restart and not reload
+- name: Restart nginx on main config change
+  service: name=nginx state=restarted
+  when: nginx_conf.changed
+
+- name: Ensure no obsolete security settings
+  file: dest=/etc/nginx/secured_php_backend.conf state=absent
+  notify: reload nginx
+  tags: [update]
+
+- name: Create probe folder
+  file: path={{docroot}}/probe state=directory owner=www-data
+
+- name: configure letsencrypt location
+  template: src=snippets/letsencrypt.conf.j2 dest=/etc/nginx/snippets/letsencrypt.conf
+  notify: reload nginx
+
+- name: configure ssl.conf location
+  template: src=snippets/ssl.conf.j2 dest=/etc/nginx/snippets/ssl.conf
+  notify: reload nginx
+
+- name: Copy probe index document
+  copy: src=probe-index.html dest={{docroot}}/probe/index.html owner=www-data
+
+- include: add-vhost.yml host=default conf=default.j2
+
+- include: add-vhost.yml host=probe conf=probe.j2
+
+- include: add-vhost.yml
+  notify: reload nginx
+  loop: "{{ lookup('dict', nginx_virtual_sites) }}"
+  vars:
+      host: "{{ item.value.host }}"
+      conf: "{{ item.value.edge_conf }}"
+      aliases: "{{ item.value.aliases }}"
+      with_ssl: "{{ item.value.with_ssl }}"
+      enforce_secure_connection: "{{ item.value.enforce_secure_connection }}"
+  

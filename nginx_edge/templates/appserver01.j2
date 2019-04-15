@@ -1,0 +1,40 @@
+# {{ ansible_managed }}
+
+{% if enforce_secure_connection|bool %}
+server {
+    listen         8090;
+    server_name    {{ host }} {{ aliases|default([])|join(" ") }};
+    return         301 https://$host$request_uri;
+}
+{% endif %}
+
+server {
+{% if with_ssl|bool %}
+    listen 8091 ssl;
+{% endif %}
+
+    server_name {{ host }} {{ aliases|default([])|join(" ") }};
+
+{% if not enforce_secure_connection|bool %}
+    listen   8090;
+{% endif %}
+
+    include /etc/nginx/snippets/letsencrypt.conf;
+
+{% if with_ssl|bool %}
+    ssl_certificate {{ ssl_certificate_path|default('/etc/letsencrypt/live/' + host + '/fullchain.pem;') }}
+    ssl_certificate_key {{ ssl_certificate_key_path|default('/etc/letsencrypt/live/' + host + '/privkey.pem;') }}
+
+    include /etc/nginx/snippets/ssl.conf;
+{% endif %}
+
+    location / {
+{% if with_ssl|bool %}
+        proxy_set_header      X-Forwarded-Proto https;
+        proxy_set_header      X-Forwarded-Port 443;
+        proxy_ssl_verify       off;
+{% endif %}
+        proxy_pass http://{{ wp2_server_ip }};
+        include proxy_params;
+    }
+}

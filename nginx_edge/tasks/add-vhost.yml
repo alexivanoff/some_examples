@@ -1,0 +1,17 @@
+---
+- name: "Configure {{ conf_dest|default(host) }} vhost using {{ conf }}"
+  become: yes
+  become_method: sudo
+  template: src="{{ conf }}" dest="/etc/nginx/sites-available/{{ conf_dest|default(host) }}"
+  notify: reload nginx
+  tags: ['nginx']
+
+- name: Enable {{ conf_dest|default(host) }} vhost
+  become: yes
+  become_method: sudo
+  file:
+    src=/etc/nginx/sites-available/{{ conf_dest|default(host) }}
+    dest=/etc/nginx/sites-enabled/{{ conf_dest|default(host) }}
+    state=link
+  notify: reload nginx
+  tags: ['nginx']

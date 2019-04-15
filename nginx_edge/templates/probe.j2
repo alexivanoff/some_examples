@@ -1,0 +1,15 @@
+ # {{ ansible_managed }}
+
+server {
+    listen 8080;
+
+    root {{ docroot }}/probe/;
+    index index.html;
+
+    allow 0.0.0.0;
+
+    location  / {
+        try_files $uri $uri/  =404;
+    }
+
+}

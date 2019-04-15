@@ -1,0 +1,6 @@
+# enables buffering for access log. note that it's pretty inconvenient in dev env
+nginx_access_log_buffer: ""
+nginx_error_level: error
+
+docroot: "/var/www/html"
+

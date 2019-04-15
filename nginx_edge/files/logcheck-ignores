@@ -1,0 +1,2 @@
+^[ /:[:digit:]]{20}\[(debug|info|notice|warn|error)\].*
+SSL: error:140A1175:SSL routines:SSL_BYTES_TO_CIPHER_LIST:inappropriate fallback
